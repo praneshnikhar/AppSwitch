@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>App Switcher</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1c1c1e;
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .status-bar {
+    text-align: center;
+    color: #8e8e93;
+    font-size: 13px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: #2c2c2e;
+    border-radius: 10px;
+  }
+  .status-bar.connected { color: #30d158; background: #1a2e1f; }
+  .status-bar.error { color: #ff453a; background: #2e1a1a; }
+  .config {
+    background: #2c2c2e;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .config label {
+    display: block;
+    font-size: 12px;
+    color: #8e8e93;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .config-row {
+    display: flex;
+    gap: 8px;
+  }
+  .config input {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #3a3a3c;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+  }
+  .config input:focus { background: #48484a; }
+  .config button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #0a84ff;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .config button:active { background: #0066cc; }
+  .config button.disconnect { background: #ff453a; }
+  .config button.disconnect:active { background: #cc372e; }
+  .app-list { list-style: none; }
+  .app-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #2c2c2e;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .app-item:active { background: #48484a; }
+  .app-item .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: #3a3a3c;
+    flex-shrink: 0;
+  }
+  .app-item .name { font-size: 16px; font-weight: 500; }
+  .app-item .pid {
+    font-size: 11px;
+    color: #8e8e93;
+    margin-top: 2px;
+  }
+  .empty {
+    text-align: center;
+    color: #8e8e93;
+    padding: 40px 20px;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="config" id="configPanel">
+  <label>Mac IP Address</label>
+  <div class="config-row">
+    <input type="text" id="ipInput" placeholder="e.g. 192.168.1.5" inputmode="url">
+    <button id="connectBtn" onclick="toggleConnection()">Connect</button>
+  </div>
+</div>
+
+<div class="status-bar" id="statusBar">Not connected</div>
+
+<ul class="app-list" id="appList"></ul>
+
+<script>
+const ipInput = document.getElementById('ipInput');
+const connectBtn = document.getElementById('connectBtn');
+const statusBar = document.getElementById('statusBar');
+const appList = document.getElementById('appList');
+
+let ws = null;
+let connected = false;
+
+function toggleConnection() {
+  if (connected) {
+    disconnect();
+  } else {
+    connect();
+  }
+}
+
+function connect() {
+  const ip = ipInput.value.trim();
+  if (!ip) return;
+
+  const url = `ws://${ip}:8080`;
+  statusBar.textContent = 'Connecting...';
+  statusBar.className = 'status-bar';
+
+  try {
+    ws = new WebSocket(url);
+  } catch (e) {
+    setStatus('Connection failed — check IP', 'error');
+    return;
+  }
+
+  ws.onopen = () => {
+    connected = true;
+    connectBtn.textContent = 'Disconnect';
+    connectBtn.className = 'disconnect';
+    ipInput.disabled = true;
+    setStatus(`Connected to ${ip}`, 'connected');
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'appList' && msg.apps) {
+        renderApps(msg.apps);
+      }
+    } catch (e) {}
+  };
+
+  ws.onclose = () => {
+    connected = false;
+    connectBtn.textContent = 'Connect';
+    connectBtn.className = '';
+    ipInput.disabled = false;
+    setStatus('Disconnected', '');
+  };
+
+  ws.onerror = () => {
+    setStatus('Connection error — is the Mac app running?', 'error');
+  };
+}
+
+function disconnect() {
+  if (ws) { ws.close(); ws = null; }
+  connected = false;
+  connectBtn.textContent = 'Connect';
+  connectBtn.className = '';
+  ipInput.disabled = false;
+  setStatus('Not connected', '');
+  appList.innerHTML = '';
+}
+
+function setStatus(text, cls) {
+  statusBar.textContent = text;
+  statusBar.className = 'status-bar ' + (cls || '');
+}
+
+function focusApp(bundleId, name) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ type: 'focus', apps: null, bundleId: bundleId }));
+  setStatus(`Switched to ${name}`, 'connected');
+}
+
+function getInitial(name) {
+  return name.charAt(0).toUpperCase();
+}
+
+function renderApps(apps) {
+  appList.innerHTML = apps.map(app => `
+    <li class="app-item" onclick="focusApp('${app.bundleId}','${app.name.replace(/'/g, "\\'")}')">
+      <div class="icon">${getInitial(app.name)}</div>
+      <div>
+        <div class="name">${app.name}</div>
+        <div class="pid">PID ${app.pid}</div>
+      </div>
+    </li>
+  `).join('');
+}
+</script>
+</body>
+</html>
