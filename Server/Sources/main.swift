@@ -290,9 +290,10 @@ body{
 
 .status{font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:.5px;text-transform:uppercase}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:14px;padding:0 16px;width:100%;justify-items:center}
+.grid{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;padding:0 16px;width:100%}
 
 .tile{
+ width:100px;
  display:flex;flex-direction:column;align-items:center;gap:6px;
  cursor:pointer
 }
