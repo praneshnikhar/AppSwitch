@@ -1,4 +1,4 @@
-# App Switcher
+# Mac Deck
 
 Control your Mac's active apps from your iPhone — tap an icon to switch.
 
