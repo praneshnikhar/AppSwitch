@@ -13,6 +13,7 @@ struct AppInfo: Codable {
     let name: String
     let bundleId: String
     let pid: Int32
+    let color: String
 }
 
 enum WSMessageType: String, Codable {
@@ -29,30 +30,46 @@ struct WSMessage: Codable {
 let serviceType = "_appswitcher._tcp."
 let port: UInt16 = 8080
 
+var colorCache: [String: String] = [:]
+
+func extractColor(for app: NSRunningApplication) -> String {
+    let h = UInt(bitPattern: app.bundleIdentifier?.hashValue ?? 0)
+    return String(format: "#%02x%02x%02x",
+        Int((h &* 137) % 256),
+        Int((h &* 211) % 256),
+        Int((h &* 173) % 256))
+}
+
 func getRunningApps() -> [AppInfo] {
     NSWorkspace.shared.runningApplications
         .filter { $0.activationPolicy == .regular }
         .compactMap { app in
             guard let name = app.localizedName,
                   let bundleId = app.bundleIdentifier else { return nil }
-            return AppInfo(name: name, bundleId: bundleId, pid: app.processIdentifier)
+            if colorCache[bundleId] == nil {
+                colorCache[bundleId] = extractColor(for: app)
+            }
+            return AppInfo(name: name, bundleId: bundleId, pid: app.processIdentifier,
+                           color: colorCache[bundleId]!)
         }
 }
 
 func focusApp(bundleId: String) {
-    let apps = NSWorkspace.shared.runningApplications
-    guard let app = apps.first(where: { $0.bundleIdentifier == bundleId }),
-          let name = app.localizedName else {
-        log("[server] App not running: \(bundleId)")
-        return
-    }
     let task = Process()
-    task.launchPath = "/usr/bin/osascript"
-    task.arguments = ["-e", "tell application \"\(name)\" to activate"]
+    task.launchPath = "/usr/bin/open"
+    task.arguments = ["-b", bundleId]
     task.standardOutput = FileHandle.nullDevice
     task.standardError = FileHandle.nullDevice
     task.launch()
-    log("[server] Focused: \(name)")
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        guard let name = NSWorkspace.shared.runningApplications
+            .first(where: { $0.bundleIdentifier == bundleId })?.localizedName else { return }
+        let script = "tell application \"System Events\" to set frontmost of process \"\(name)\" to true"
+        NSAppleScript(source: script)?.executeAndReturnError(nil)
+    }
+
+    log("[server] Focused: \(bundleId)")
 }
 
 // MARK: - WebSocket (RFC 6455) helpers
@@ -263,47 +280,98 @@ func webAppHTML() -> String { #"""
 <title>App Switcher</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1c1c1e;color:#fff;min-height:100dvh;padding:20px;-webkit-tap-highlight-color:transparent;user-select:none}
-.status-bar{text-align:center;color:#8e8e93;font-size:13px;margin-bottom:16px;padding:10px;background:#2c2c2e;border-radius:10px}
-.status-bar.connected{color:#30d158;background:#1a2e1f}
-.status-bar.error{color:#ff453a;background:#2e1a1a}
-.app-list{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-.app-item{width:128px;display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:4px}
-.app-item:active{opacity:0.6}
-.app-item .icon{width:120px;height:120px;border-radius:22px}
-.app-item .name{font-size:11px;color:#8e8e93;margin-top:4px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:72px}
+body{
+ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+ background:#1c1c1e;color:#fff;min-height:100dvh;
+ display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+ -webkit-tap-highlight-color:transparent;user-select:none;overflow:hidden;
+ transition:background .5s ease
+}
+
+.status{font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:.5px;text-transform:uppercase}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 16px;max-width:340px;width:100%}
+
+.tile{
+ display:flex;flex-direction:column;align-items:center;gap:6px;
+ cursor:pointer;justify-self:center
+}
+
+.tile .icon{
+ width:100px;height:100px;border-radius:22px;
+ box-shadow:0 0 0 3px transparent;
+ transition:box-shadow .3s ease
+}
+.tile.active .icon{box-shadow:0 0 0 3px var(--glow-color, #fff)}
+
+.tile .label{
+ font-size:10px;color:rgba(255,255,255,0.5);text-align:center;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:84px
+}
+
+.wash{
+ position:fixed;border-radius:50%;z-index:100;pointer-events:none;
+ opacity:0;transform:scale(0);
+ transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .25s ease;
+}
+.wash.active{opacity:.9;transform:scale(1)}
 </style>
 </head>
 <body>
-<div class="status-bar" id="status">Connecting...</div>
-<ul class="app-list" id="list"></ul>
+
+<div class="status" id="status">Connecting...</div>
+<div class="grid" id="grid"></div>
+<div class="wash" id="wash"></div>
+
 <script>
 (function(){
-var s=document.getElementById('status'),l=document.getElementById('list'),ws;
-function u(c,t){s.className='status-bar '+(c||'');s.textContent=t}
+var ws,grid=document.getElementById('grid'),status=document.getElementById('status'),
+    wash=document.getElementById('wash'),body=document.body,activeTile=null;
 
 function connect(){
  ws=new WebSocket('ws://'+location.host);
- ws.onopen=function(){u('connected','Connected')};
- ws.onclose=function(){u('','Disconnected — reload page')};
- ws.onerror=function(){u('error','Connection error')};
+ ws.onopen=function(){status.textContent='Connected'};
+ ws.onclose=function(){status.textContent='Disconnected'};
+ ws.onerror=function(){status.textContent='Connection error'};
  ws.onmessage=function(e){
   try{var m=JSON.parse(e.data);if(m.type==='appList'&&m.apps)render(m.apps)}catch(err){}
  }
 }
 
-function render(a){
- l.innerHTML='';
- a.forEach(function(x){
-  var li=document.createElement('li');
-  li.className='app-item';
-  li.innerHTML='<img class="icon" src="/icon?bundleId='+encodeURIComponent(x.bundleId)+'" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22><rect fill=%22%233a3a3c%22 width=%2260%22 height=%2260%22 rx=%2214%22/><text fill=%22%238e8e93%22 x=%2230%22 y=%2240%22 text-anchor=%22middle%22 font-size=%2228%22>'+x.name[0].toUpperCase()+'</text></svg>\'"><div class="name">'+x.name+'</div>';
-  li.addEventListener('click',function(){
-   ws.send(JSON.stringify({type:'focus',apps:null,bundleId:x.bundleId}));
-   u('connected','Switched to '+x.name)
-  });
-  l.appendChild(li)
+function render(apps){
+ grid.innerHTML='';
+ apps.forEach(function(a){
+  var t=document.createElement('div');t.className='tile';
+  t.setAttribute('data-color',a.color);
+  t.innerHTML='<img class="icon" src="/icon?bundleId='+encodeURIComponent(a.bundleId)+'" onerror="this.style.display=\'none\'">'+
+   '<div class="label">'+a.name+'</div>';
+  t.addEventListener('click',function(e){selectApp(a,t,e)});
+  t.addEventListener('touchstart',function(e){selectApp(a,t,e)});
+  grid.appendChild(t)
  })
+}
+
+function selectApp(a,t,e){
+ if(activeTile){activeTile.classList.remove('active');activeTile.style.removeProperty('--glow-color')}
+ t.classList.add('active');
+ t.style.setProperty('--glow-color',a.color);
+ activeTile=t;
+
+ var rect=t.getBoundingClientRect();
+ var cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+ var size=Math.max(window.innerWidth,window.innerHeight)*2.5;
+
+ wash.style.cssText='width:'+size+'px;height:'+size+'px;left:'+(cx-size/2)+'px;top:'+(cy-size/2)+'px;'+
+  'background:radial-gradient(circle,'+a.color+' 0%,'+a.color+'00 70%)';
+ wash.offsetHeight;
+ wash.classList.add('active');
+
+ setTimeout(function(){
+  ws.send(JSON.stringify({type:'focus',apps:null,bundleId:a.bundleId}));
+ },150);
+ setTimeout(function(){
+  wash.classList.remove('active')
+ },600)
 }
 
 connect()
