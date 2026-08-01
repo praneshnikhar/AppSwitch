@@ -64,7 +64,4 @@ web/index.html               # Standalone web app (served by server)
 project.yml                   # XcodeGen project spec
 SETUP.md                      # Original setup docs
 
-## Credits
-
-Built by [praneshnikhar](https://github.com/praneshnikhar) with [Claude Code](https://claude.ai) as the primary coding agent — including architecture, server implementation, web UI, and all animations.
 ```
