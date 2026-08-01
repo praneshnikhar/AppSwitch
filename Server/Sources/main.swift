@@ -309,24 +309,16 @@ body{
  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:84px
 }
 
-.wash{
- position:fixed;border-radius:50%;z-index:100;pointer-events:none;
- opacity:0;transform:scale(0);
- transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .25s ease;
-}
-.wash.active{opacity:.9;transform:scale(1)}
-</style>
+}</style>
 </head>
 <body>
 
 <div class="status" id="status">Connecting...</div>
 <div class="grid" id="grid"></div>
-<div class="wash" id="wash"></div>
 
 <script>
 (function(){
-var ws,grid=document.getElementById('grid'),status=document.getElementById('status'),
-    wash=document.getElementById('wash'),body=document.body,activeTile=null;
+var ws,grid=document.getElementById('grid'),status=document.getElementById('status'),activeTile=null;
 
 function connect(){
  ws=new WebSocket('ws://'+location.host);
@@ -357,21 +349,7 @@ function selectApp(a,t,e){
  t.style.setProperty('--glow-color',a.color);
  activeTile=t;
 
- var rect=t.getBoundingClientRect();
- var cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
- var size=Math.max(window.innerWidth,window.innerHeight)*2.5;
-
- wash.style.cssText='width:'+size+'px;height:'+size+'px;left:'+(cx-size/2)+'px;top:'+(cy-size/2)+'px;'+
-  'background:radial-gradient(circle,'+a.color+' 0%,'+a.color+'00 70%)';
- wash.offsetHeight;
- wash.classList.add('active');
-
- setTimeout(function(){
-  ws.send(JSON.stringify({type:'focus',apps:null,bundleId:a.bundleId}));
- },150);
- setTimeout(function(){
-  wash.classList.remove('active')
- },600)
+ ws.send(JSON.stringify({type:'focus',apps:null,bundleId:a.bundleId}));
 }
 
 connect()
