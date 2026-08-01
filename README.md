@@ -31,6 +31,21 @@ Then open the URL printed in the terminal on your iPhone (e.g. `http://10.0.0.5:
 
 **Stop:** Press `Ctrl+C`
 
+**Run on startup:** To make the server start automatically when you log in:
+
+```bash
+cd Server && ./install-launch-agent.sh
+```
+
+This creates a LaunchAgent that runs `serve.sh` on every login. The server stays alive and restarts if it crashes.
+
+To stop and remove it from startup:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.appswitcher.server.plist
+rm ~/Library/LaunchAgents/com.appswitcher.server.plist
+```
+
 ### Xcode Mode (native macOS + iOS apps)
 
 If you have Xcode installed, you can use the native apps.
