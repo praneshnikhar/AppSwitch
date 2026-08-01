@@ -15,11 +15,9 @@ if [ ! -f "$BINARY" ] || [ "$SCRIPT_DIR/Sources/main.swift" -nt "$BINARY" ]; the
     echo "[build] Done"
 fi
 
-pkill -f "\.build/AppSwitcher" 2>/dev/null || true
-
 LOCAL_IP=$(ifconfig | grep 'inet ' | grep -v 127.0.0.1 | head -1 | awk '{print $2}')
 echo "  Mac IP: $LOCAL_IP"
 echo "  On your phone: http://$LOCAL_IP:8080"
 echo ""
 
-"$BINARY"
+exec "$BINARY"
