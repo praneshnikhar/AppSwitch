@@ -39,7 +39,25 @@ cd Server && ./install-launch-agent.sh
 
 This creates a LaunchAgent that runs `serve.sh` on every login. The server stays alive and restarts if it crashes.
 
-To stop and remove it from startup:
+**Shell aliases** (add these to `~/.zshrc` for quick control):
+
+```bash
+alias macdeck-start='launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.macdeck.server.plist && echo "Mac Deck started"'
+alias macdeck-stop='launchctl bootout gui/$(id -u)/com.macdeck.server && echo "Mac Deck stopped"'
+alias macdeck-restart='macdeck-stop; sleep 1; macdeck-start'
+alias macdeck-status='lsof -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1 && echo "Running" || echo "Not running"'
+```
+
+Then use:
+
+```bash
+macdeck-start      # start the server
+macdeck-stop       # stop the server
+macdeck-restart    # restart the server
+macdeck-status     # check if running
+```
+
+To uninstall the LaunchAgent:
 
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.macdeck.server.plist
