@@ -63,4 +63,8 @@ web/index.html               # Standalone web app (served by server)
 
 project.yml                   # XcodeGen project spec
 SETUP.md                      # Original setup docs
+
+---
+
+Built with [Claude Code](https://claude.ai)
 ```
