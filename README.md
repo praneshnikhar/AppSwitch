@@ -42,8 +42,8 @@ This creates a LaunchAgent that runs `serve.sh` on every login. The server stays
 To stop and remove it from startup:
 
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.appswitcher.server.plist
-rm ~/Library/LaunchAgents/com.appswitcher.server.plist
+launchctl unload ~/Library/LaunchAgents/com.macdeck.server.plist
+rm ~/Library/LaunchAgents/com.macdeck.server.plist
 ```
 
 ### Xcode Mode (native macOS + iOS apps)
@@ -53,7 +53,7 @@ If you have Xcode installed, you can use the native apps.
 **Setup:**
 1. Install [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 2. In the project root, run: `xcodegen generate`
-3. Open `AppSwitcher.xcodeproj`
+3. Open `MacDeck.xcodeproj`
 4. Select your Apple ID as the signing team for both targets
 
 **Run:**

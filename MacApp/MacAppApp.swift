@@ -1,13 +1,13 @@
 import SwiftUI
 
 @main
-struct MacAppSwitcherApp: App {
+struct MacDeckMacApp: App {
     @StateObject private var manager = ServerManager()
 
     var body: some Scene {
         MenuBarExtra {
             VStack(alignment: .leading) {
-                Text("App Switcher")
+                Text("Mac Deck")
                     .font(.headline)
                 Toggle("Server", isOn: Binding(
                     get: { manager.isRunning },
@@ -27,7 +27,7 @@ struct MacAppSwitcherApp: App {
             Image(systemName: manager.isRunning ? "rectangle.3.group.fill" : "rectangle.3.group")
         }
 
-        WindowGroup("App Switcher", id: "main") {
+        WindowGroup("Mac Deck", id: "main") {
             ContentView()
                 .environmentObject(manager)
         }

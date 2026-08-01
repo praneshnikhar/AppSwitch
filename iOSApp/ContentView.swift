@@ -14,7 +14,7 @@ struct ContentView: View {
                     discoveryView
                 }
             }
-            .navigationTitle("App Switcher")
+            .navigationTitle("Mac Deck")
         }
         .onAppear {
             discovery.start()

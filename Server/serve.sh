@@ -3,9 +3,9 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/.build"
-BINARY="$BUILD_DIR/AppSwitcher"
+BINARY="$BUILD_DIR/MacDeck"
 
-echo "=== App Switcher ==="
+echo "=== Mac Deck ==="
 
 if [ ! -f "$BINARY" ] || [ "$SCRIPT_DIR/Sources/main.swift" -nt "$BINARY" ]; then
     echo "[build] Compiling..."

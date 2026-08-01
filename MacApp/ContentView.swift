@@ -9,7 +9,7 @@ struct ContentView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.tint)
 
-            Text("App Switcher Server")
+            Text("Mac Deck Server")
                 .font(.title2)
 
             HStack {

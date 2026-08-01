@@ -19,5 +19,5 @@ struct WSMessage: Codable {
     let bundleId: String?
 }
 
-let serviceType = "_appswitcher._tcp."
+let serviceType = "_macdeck._tcp."
 let defaultPort: UInt16 = 8080

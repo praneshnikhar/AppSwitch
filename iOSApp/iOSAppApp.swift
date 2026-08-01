@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct iOSAppSwitcherApp: App {
+struct MacDeckiOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

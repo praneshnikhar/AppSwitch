@@ -9,7 +9,7 @@ final class BonjourService: NSObject, NetServiceDelegate {
     }
 
     func start() {
-        netService = NetService(domain: "local.", type: serviceType, name: "Mac App Switcher", port: port)
+        netService = NetService(domain: "local.", type: serviceType, name: "Mac Deck", port: port)
         netService?.delegate = self
         netService?.publish()
     }

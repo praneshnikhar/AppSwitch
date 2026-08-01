@@ -1,9 +1,9 @@
-# App Switcher Setup
+# Mac Deck Setup
 
 ## Project Structure
 
 ```
-app-switcher/
+mac-deck/
 ├── Shared/
 │   └── Protocol.swift          # Shared types (add to both targets)
 ├── MacApp/                     # macOS server app
@@ -30,8 +30,8 @@ app-switcher/
 
 1. Open Xcode → File → New → Project
 2. macOS → App → SwiftUI → Name: `MacApp`
-3. Set Team, Bundle Identifier (e.g. `com.yourname.macappswitcher`)
-4. Save inside `app-switcher/`
+3. Set Team, Bundle Identifier (e.g. `com.yourname.macdeck`)
+4. Save inside `mac-deck/`
 5. **Replace** the generated files with the files from `MacApp/` and `Shared/`
 6. Add `Shared/Protocol.swift` to the target
 
@@ -40,7 +40,7 @@ app-switcher/
 1. Open Xcode → File → New → Project
 2. iOS → App → SwiftUI → Name: `iOSApp`
 3. Set Team, Bundle Identifier
-4. Save inside `app-switcher/`
+4. Save inside `mac-deck/`
 5. **Replace** the generated files with the files from `iOSApp/` and `Shared/`
 6. Add `Shared/Protocol.swift` to the target
 
@@ -50,10 +50,10 @@ In the iOS app's `Info.plist`, add:
 
 ```xml
 <key>NSLocalNetworkUsageDescription</key>
-<string>App Switcher needs local network access to discover your Mac.</string>
+<string>Mac Deck needs local network access to discover your Mac.</string>
 <key>NSBonjourServices</key>
 <array>
-    <string>_appswitcher._tcp</string>
+    <string>_macdeck._tcp</string>
 </array>
 ```
 
@@ -77,5 +77,5 @@ This allows the iOS app to discover the Mac via Bonjour/mDNS.
 ### 6. How It Works
 
 - **Mac app** polls `NSWorkspace.shared.runningApplications` every 2s and broadcasts the list to all connected WebSocket clients.
-- **iOS app** discovers the Mac via Bonjour (`_appswitcher._tcp`), connects via WebSocket, and displays the app list.
+- **iOS app** discovers the Mac via Bonjour (`_macdeck._tcp`), connects via WebSocket, and displays the app list.
 - Tapping an app sends a `focus` message with the bundle ID → Mac calls `app.activate(options:)` to bring the window front.

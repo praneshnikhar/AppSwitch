@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "AppSwitcher",
+    name: "MacDeck",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "AppSwitcher",
+            name: "MacDeck",
             path: "Sources"
         ),
     ]

@@ -27,7 +27,7 @@ struct WSMessage: Codable {
     let bundleId: String?
 }
 
-let serviceType = "_appswitcher._tcp."
+let serviceType = "_macdeck._tcp."
 let port: UInt16 = 8080
 
 var colorCache: [String: String] = [:]
@@ -258,7 +258,7 @@ final class Server {
 final class BonjourService: NSObject, NetServiceDelegate {
     private var service: NetService?
     func publish() {
-        service = NetService(domain: "local.", type: serviceType, name: "App Switcher", port: Int32(port))
+        service = NetService(domain: "local.", type: serviceType, name: "Mac Deck", port: Int32(port))
         service?.delegate = self
         service?.publish()
     }
@@ -277,7 +277,7 @@ func webAppHTML() -> String { #"""
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>App Switcher</title>
+<title>Mac Deck</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -362,7 +362,7 @@ connect()
 
 // MARK: - Entry Point
 
-log("=== App Switcher ===")
+log("=== Mac Deck ===")
 
 let server = Server()
 try server.start()

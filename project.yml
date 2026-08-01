@@ -1,6 +1,6 @@
-name: AppSwitcher
+name: MacDeck
 options:
-  bundleIdPrefix: com.appswitcher
+  bundleIdPrefix: com.macdeck
   deploymentTarget:
     macOS: "14.0"
     iOS: "17.0"
@@ -14,13 +14,13 @@ targets:
       - MacApp
       - Shared
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.appswitcher.mac
+      PRODUCT_BUNDLE_IDENTIFIER: com.macdeck.mac
       INFOPLIST_FILE: MacApp/Info.plist
     info:
       path: MacApp/Info.plist
       properties:
-        CFBundleName: App Switcher
-        CFBundleDisplayName: App Switcher
+        CFBundleName: Mac Deck
+        CFBundleDisplayName: Mac Deck
         CFBundlePackageType: APPL
         LSMinimumSystemVersion: "14.0"
   iOSApp:
@@ -30,17 +30,17 @@ targets:
       - iOSApp
       - Shared
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.appswitcher.ios
+      PRODUCT_BUNDLE_IDENTIFIER: com.macdeck.ios
       INFOPLIST_FILE: iOSApp/Info.plist
       TARGETED_DEVICE_FAMILY: "1"
     info:
       path: iOSApp/Info.plist
       properties:
-        CFBundleName: App Switcher
-        CFBundleDisplayName: App Switcher
+        CFBundleName: Mac Deck
+        CFBundleDisplayName: Mac Deck
         CFBundlePackageType: APPL
         LSRequiresIPhoneOS: true
         UILaunchStoryboardName: LaunchScreen
-        NSLocalNetworkUsageDescription: App Switcher needs local network access to discover your Mac.
+        NSLocalNetworkUsageDescription: Mac Deck needs local network access to discover your Mac.
         NSBonjourServices:
-          - _appswitcher._tcp
+          - _macdeck._tcp
