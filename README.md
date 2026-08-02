@@ -1,8 +1,8 @@
 # Mac Deck
 
-Control your Mac's active apps from your iPhone — tap an icon to switch.
+Control your Mac's active apps from your iPhone — tap an icon to switch
 
-<img width="1280" height="590" alt="Image" src="https://github.com/user-attachments/assets/59596c67-356f-4181-83b6-429544107390" />
+<img width="680" height="301" alt="Image" src="https://github.com/user-attachments/assets/bf09da76-6d57-48c9-8d8d-8eccca60618a" />
 
 ## Modes
 
