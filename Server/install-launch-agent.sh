@@ -22,6 +22,8 @@ cat > "$PLIST_PATH" << PLIST
     <true/>
     <key>KeepAlive</key>
     <true/>
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
     <key>StandardOutPath</key>
     <string>/tmp/macdeck.log</string>
     <key>StandardErrorPath</key>
@@ -30,10 +32,16 @@ cat > "$PLIST_PATH" << PLIST
 </plist>
 PLIST
 
-launchctl unload "$PLIST_PATH" 2>/dev/null || true
-launchctl load "$PLIST_PATH"
+launchctl bootout gui/$(id -u)/com.macdeck.server 2>/dev/null || true
+launchctl bootstrap gui/$(id -u) "$PLIST_PATH"
 
 echo "Installed. Server will start automatically on login."
-echo "To start now: launchctl start com.macdeck.server"
-echo "To stop now: launchctl stop com.macdeck.server"
-echo "To uninstall: rm $PLIST_PATH && launchctl unload $PLIST_PATH"
+echo ""
+echo "Shortcuts (add to ~/.zshrc):"
+echo "  macdeck-start    → start the server"
+echo "  macdeck-stop     → stop the server"
+echo "  macdeck-restart  → restart the server"
+echo "  macdeck-status   → check if running"
+echo ""
+echo "To uninstall:"
+echo "  macdeck-stop && rm $PLIST_PATH"

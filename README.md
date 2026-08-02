@@ -60,8 +60,7 @@ macdeck-status     # check if running
 To uninstall the LaunchAgent:
 
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.macdeck.server.plist
-rm ~/Library/LaunchAgents/com.macdeck.server.plist
+macdeck-stop && rm ~/Library/LaunchAgents/com.macdeck.server.plist
 ```
 
 ### Xcode Mode (native macOS + iOS apps)
